@@ -18,10 +18,16 @@ type symbolicLink struct {
 }
 
 var (
-	listOption bool
-	dirOption  string
+	listOption          bool
+	dirOption           string
+	unlinkOption        bool
+	targetSymlinkOption string
 
 	homeDir string
+
+	// color
+	yellow = color.New(color.FgYellow).SprintFunc()
+	cyan   = color.New(color.FgCyan).SprintFunc()
 )
 
 func init() {
@@ -33,12 +39,14 @@ func init() {
 
 	flag.BoolVar(&listOption, "list", false, "List up symbolic links in a target directory.")
 	flag.StringVar(&dirOption, "dir", homeDir, "Set a target directory path.")
+	flag.BoolVar(&unlinkOption, "unlink", false, "Unlink a target symbolic link.")
+	flag.StringVar(&targetSymlinkOption, "target", "", "Set a target symbolic link to unlink.")
 	flag.Parse()
 }
 
 func main() {
 	var err error
-	err = formatPath()
+	err = formatPaths()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -53,21 +61,16 @@ func main() {
 	}
 }
 
-func formatPath() error {
-	var err error
-	if strings.Contains(dirOption, "~") {
-		dirOption = strings.Replace(dirOption, "~", homeDir, 1)
-	}
-	dirOption = filepath.Clean(dirOption)
-	dirOption, err = filepath.Abs(dirOption)
-	return err
-}
-
 func execute() error {
 	var err error
 	switch {
 	case listOption && dirOption != "":
 		err = printSymbolicLinks()
+	case unlinkOption && targetSymlinkOption != "":
+		err = unlink()
+		if err == nil {
+			fmt.Printf("%s has been successfully unlinked!\n", yellow(targetSymlinkOption))
+		}
 	default:
 		flag.PrintDefaults()
 	}
@@ -75,9 +78,6 @@ func execute() error {
 }
 
 func printSymbolicLinks() error {
-	yellow := color.New(color.FgYellow).SprintFunc()
-	cyan := color.New(color.FgCyan).SprintFunc()
-
 	symbolicLinks, err := listUpSymbolicLinks()
 	if symbolicLinks != nil {
 		for _, symbolicLink := range symbolicLinks {
@@ -107,4 +107,27 @@ func listUpSymbolicLinks() ([]symbolicLink, error) {
 	})
 
 	return list, err
+}
+
+func unlink() error {
+	_, err := os.Lstat(targetSymlinkOption)
+	if err != nil {
+		return err
+	}
+	return os.Remove(targetSymlinkOption)
+}
+
+func formatPaths() error {
+	var err error
+	dirOption, err = formatPath(dirOption)
+	targetSymlinkOption, err = formatPath(targetSymlinkOption)
+	return err
+}
+
+func formatPath(path string) (formattedPath string, err error) {
+	if strings.Contains(path, "~") {
+		formattedPath = strings.Replace(path, "~", homeDir, 1)
+	}
+	formattedPath = filepath.Clean(path)
+	return filepath.Abs(path)
 }
