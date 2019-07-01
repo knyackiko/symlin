@@ -27,25 +27,26 @@ var (
 func init() {
 	user, err := user.Current()
 	if err != nil {
-		println(err)
+		fmt.Println(err)
 	}
 	homeDir = user.HomeDir
 
-	flag.BoolVar(&listOption, "list", false, "")
-	flag.StringVar(&dirOption, "dir", "", "")
+	flag.BoolVar(&listOption, "list", false, "List up symbolic links in a target directory.")
+	flag.StringVar(&dirOption, "dir", homeDir, "Set a target directory path.")
 	flag.Parse()
 }
 
 func main() {
-	err1 := formatPath()
-	if err1 != nil {
-		fmt.Println(err1)
+	var err error
+	err = formatPath()
+	if err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	err2 := execute()
-	if err2 != nil {
-		fmt.Println(err2)
+	err = execute()
+	if err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	} else {
 		os.Exit(0)
