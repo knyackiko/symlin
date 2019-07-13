@@ -44,7 +44,7 @@ func init() {
 func main() {
 	app := cli.NewApp()
 	app.Name = "Symlin"
-	app.Version = "1.0.0"
+	app.Version = "0.0.1"
 	app.Author = "kyklades"
 	app.Usage = "Symbolic links manager."
 	app.Description = "This manages symbolic links."
