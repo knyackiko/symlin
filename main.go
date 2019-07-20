@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
@@ -44,7 +45,7 @@ func init() {
 func main() {
 	app := cli.NewApp()
 	app.Name = "Symlin"
-	app.Version = "0.0.1"
+	app.Version = "0.1.0"
 	app.Author = "kyklades"
 	app.Usage = "Symbolic links manager."
 	app.Description = "This manages symbolic links."
@@ -108,9 +109,16 @@ func doListUp(c *cli.Context) (err error) {
 		return
 	}
 
+	var max int
+	for _, symbolicLink := range symbolicLinks {
+		if max < len(symbolicLink.name) {
+			max = len(symbolicLink.name)
+		}
+	}
+
 	if symbolicLinks != nil {
 		for _, symbolicLink := range symbolicLinks {
-			fmt.Printf("%s -> %s\n", yellow(symbolicLink.name), cyan(symbolicLink.actualPath))
+			fmt.Printf("%s%s -> %s\n", yellow(symbolicLink.name), strings.Repeat(" ", max-len(symbolicLink.name)), cyan(symbolicLink.actualPath))
 		}
 	}
 	return err
